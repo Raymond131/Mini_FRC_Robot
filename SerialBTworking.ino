@@ -20,9 +20,9 @@ String device_name = "SwerveBotDevKit";
 #endif
 
 BluetoothSerial SerialBT;
-int led = 4;
-int joystickVals[4];
-byte data;
+int ledPins[16] = {13, 12, 14, 27, 26, 25, 33, 32, 16, 17, 5, 18, 19, 21, 22, 23}; //pin numbers that control leds
+int joystickVals[16]; 
+
 void setup() {
   Serial.begin(115200);
   SerialBT.begin(device_name); //Bluetooth device name
@@ -32,31 +32,67 @@ void setup() {
     SerialBT.setPin(pin);
     Serial.println("Using PIN");
   #endif
-
-  pinMode(led, OUTPUT);
-
+    
+  for(int i=0; i<16; i++){
+    pinMode(ledPins[i], OUTPUT);
+  }
 }
 
+
+void updateInputs(){
+  joystickVals[0] = SerialBT.read();
+  joystickVals[1] = SerialBT.read();
+  joystickVals[2] = SerialBT.read();
+  joystickVals[3] = SerialBT.read();
+  joystickVals[4] = SerialBT.read();
+  joystickVals[5] = SerialBT.read();
+  joystickVals[6] = SerialBT.read();
+  joystickVals[7] = SerialBT.read();
+  joystickVals[8] = SerialBT.read();
+  joystickVals[9] = SerialBT.read();
+  joystickVals[10] = SerialBT.read();
+  joystickVals[11] = SerialBT.read();
+  joystickVals[12] = SerialBT.read();
+  joystickVals[13] = SerialBT.read();
+  joystickVals[14] = SerialBT.read();
+  joystickVals[15] = SerialBT.read();
+}
+
+void printInputs(){
+  Serial.print("val[0]:  ");Serial.print(joystickVals[0]);Serial.print(" ");
+  Serial.print("val[1]:  ");Serial.print(joystickVals[1]);Serial.print(" ");
+  Serial.print("val[2]:  ");Serial.print(joystickVals[2]);Serial.print(" ");
+  Serial.print("val[3]:  ");Serial.print(joystickVals[3]);Serial.print(" ");
+  Serial.print("val[4]:  ");Serial.print(joystickVals[4]);Serial.print(" ");
+  Serial.print("val[5]:  ");Serial.print(joystickVals[5]);Serial.print(" ");
+  Serial.print("val[6]:  ");Serial.print(joystickVals[6]);Serial.print(" ");
+  Serial.print("val[7]:  ");Serial.print(joystickVals[7]);Serial.print(" ");
+  Serial.print("val[8]:  ");Serial.print(joystickVals[8]);Serial.print(" ");
+  Serial.print("val[9]:  ");Serial.print(joystickVals[9]);Serial.print(" ");
+  Serial.print("val[10]:  ");Serial.print(joystickVals[10]);Serial.print(" ");
+  Serial.print("val[11]:  ");Serial.print(joystickVals[11]);Serial.print(" ");
+  Serial.print("val[12]:  ");Serial.print(joystickVals[12]);Serial.print(" ");
+  Serial.print("val[13]:  ");Serial.print(joystickVals[13]);Serial.print(" ");
+  Serial.print("val[14]:  ");Serial.print(joystickVals[14]);Serial.print(" ");
+  Serial.print("val[15]:  ");Serial.println(joystickVals[15]);
+}
+
+void controlLeds(){
+  for(int i=0; i<16; i++){
+      if(i<=5){
+        analogWrite(ledPins[i], map(joystickVals[i], 0, 200, 0, 255));
+      }else{
+        digitalWrite(ledPins[i], joystickVals[i]);
+      }
+    }
+}
+  
+
 void loop() {
-  // if (Serial.available()) {
-  //   SerialBT.write(Serial.read());
-  // }
   if(SerialBT.available()) {
-
-    joystickVals[0] = SerialBT.read();
-    joystickVals[1] = SerialBT.read();
-    joystickVals[2] = SerialBT.read();
-    joystickVals[3] = SerialBT.read();
-    //Serial.println(data);//0 becomes 48, one becomes 49
-    Serial.print("val[0]:  ");Serial.print(joystickVals[0]);Serial.print(" ");
-    Serial.print("val[1]:  ");Serial.print(joystickVals[1]);Serial.print(" ");
-    Serial.print("val[2]:  ");Serial.print(joystickVals[2]);Serial.print(" ");
-    Serial.print("val[3]:  ");Serial.println(joystickVals[3]);
-
-    // digitalWrite(led, data-48);
-    
+    updateInputs();
+    printInputs();
+    controlLeds();
   }
-
-  // // Serial.write(SerialBT.read());
-  // delay(5);
+  delay(5);
 }
