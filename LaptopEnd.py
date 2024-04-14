@@ -12,7 +12,7 @@ if(Stick):
     joystick = pygame.joystick.Joystick(0)
     joystick.init()
 
-# nearby_devices = bluetooth.discover_devices(lookup_names=True)
+# nearby_devices = bluetooth.discover_devices(lookup_names=True) //inquiry example from pypi.org on pybluez2 library
 # print("Found {} devices.".format(len(nearby_devices)))
 
 # for addr, name in nearby_devices:
@@ -35,19 +35,36 @@ if(Blutooth):
     sock = bluetooth.BluetoothSocket(Protocols.RFCOMM)
     sock.connect((address, port))
 
+axes = [0 for i in range(6)]
+axesAdj = [0,0.004,0,0,0,0]
+buttons = [0 for i in range(10)]
+
+def printJoyInputs():
+    messageString = ""
+    for a in range(6):
+        messageString += 'Ax%d:%3d | '% (a, axes[a]) + " "
+    for b in range(10):
+        messageString += 'Bt%d:%d | '% (b, buttons[b]) + " "
+    print(messageString)
+
+def sayHi():
+    for x in range(5):
+        sock.send((125).to_bytes(1, byteorder='big')+b'\x01'+b'\x00'+b'\xff')
+        time.sleep(0.01)
+    print("I already said hey")
+    sock.close() 
+
 while True:
     pygame.event.get()
-    ax0 = int(100*(round(joystick.get_axis(0),2)+1))
-    ax1 = int(100*(round(joystick.get_axis(1),2)+1))
-    bt0 = joystick.get_button(0)
-    bt1 = joystick.get_button(1)
-    outputByte = (ax0).to_bytes(1,byteorder='big')+(ax1).to_bytes(1,byteorder='big')+(bt0).to_bytes(1,byteorder='big')+(bt1).to_bytes(1,byteorder='big')
-    sock.send(outputByte)
-    # print(outputByte)
-    # print('ax0: %3d, ax1: %3d, bt0, %d, bt1, %d' % (ax0, ax1, bt0, bt1))
-    time.sleep(0.01)
-for x in range(5):
-    sock.send((125).to_bytes(1, byteorder='big')+b'\x01'+b'\x00'+b'\xff')
-    time.sleep(0.01)
-print("I already said hey")
-sock.close() 
+    
+    messageBytes = b''
+    for axis in range(6):
+        axes[axis] = int(100*(round(joystick.get_axis(axis)+axesAdj[axis],2)+1))
+        messageBytes += axes[axis].to_bytes(1,byteorder='big')
+    for button in range(10):
+        buttons[button] = joystick.get_button(button)
+        messageBytes += buttons[button].to_bytes(1,byteorder='big')
+    sock.send(messageBytes)
+    
+    time.sleep(0.02)
+
